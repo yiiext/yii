@@ -179,14 +179,13 @@ class YiiBase
 	{
 		return 'Powered by <a href="http://www.yiiframework.com/">Yii Framework</a>.';
 	}
-	public static function t($message,$params=array())
+	public static function t($category,$message,$params=array())
 	{
-		if(self::$_app!==null && ($pos=strpos($message,'#'))!==false)
+		if(self::$_app!==null)
 		{
-			$category=substr($message,0,$pos);
 			$source=$category==='yii'?self::$_app->getCoreMessages():self::$_app->getMessages();
 			if($source!==null)
-				$message=$source->translate((string)substr($message,$pos+1),$category);
+				$message=$source->translate($category,$message);
 		}
 		return $params!==array() ? strtr($message,$params) : $message;
 	}
@@ -6010,6 +6009,85 @@ class CAssetManager extends CApplicationComponent
 	protected function hash($path)
 	{
 		return sprintf('%x',crc32($path.Yii::getVersion()));
+	}
+}
+class CFileHelper
+{
+	public static function copyDirectory($src,$dst,$options=array())
+	{
+		$fileTypes=array();
+		$exclude=array();
+		$level=-1;
+		extract($options);
+		self::copyDirectoryRecursive($src,$dst,'',$fileTypes,$exclude,$level);
+	}
+	public static function findFiles($dir,$options=array())
+	{
+		$fileTypes=array();
+		$exclude=array();
+		$level=-1;
+		extract($options);
+		$list=self::findFilesRecursive($dir,'',$fileTypes,$exclude,$level);
+		sort($list);
+		return $list;
+	}
+	protected static function copyDirectoryRecursive($src,$dst,$base,$fileTypes,$exclude,$level)
+	{
+		@mkdir($dst);
+		$folder=opendir($src);
+		while($file=readdir($folder))
+		{
+			if($file==='.' || $file==='..')
+				continue;
+			$path=$src.DIRECTORY_SEPARATOR.$file;
+			$isFile=is_file($path);
+			if(self::validatePath($base,$file,$isFile,$fileTypes,$exclude))
+			{
+				if($isFile)
+					copy($path,$dst.DIRECTORY_SEPARATOR.$file);
+				else if($level)
+					self::copyDirectoryRecursive($path,$dst.DIRECTORY_SEPARATOR.$file,$base.'/'.$file,$fileTypes,$exclude,$level-1);
+			}
+		}
+		closedir($folder);
+	}
+	protected static function findFilesRecursive($dir,$base,$fileTypes,$exclude,$level)
+	{
+		$list=array();
+		$handle=opendir($dir);
+		while($file=readdir($handle))
+		{
+			if($file==='.' || $file==='..')
+				continue;
+			$path=$dir.DIRECTORY_SEPARATOR.$file;
+			$isFile=is_file($path);
+			if(self::validatePath($base,$file,$isFile,$fileTypes,$exclude))
+			{
+				if($isFile)
+					$list[]=$path;
+				else if($level)
+					$list=array_merge($list,self::findFilesRecursive($path,$base.'/'.$file,$fileTypes,$exclude,$level-1));
+			}
+		}
+		closedir($handle);
+		return $list;
+	}
+	protected static function validatePath($base,$file,$isFile,$fileTypes,$exclude)
+	{
+		foreach($exclude as $e)
+		{
+			if($file===$e || strpos($base.'/'.$file,$e)===0)
+				return false;
+		}
+		if(!$isFile || empty($fileTypes))
+			return true;
+		if(($pos=strrpos($file,'.'))!==false)
+		{
+			$type=substr($file,$pos+1);
+			return in_array($type,$fileTypes);
+		}
+		else
+			return false;
 	}
 }
 interface IApplicationComponent
