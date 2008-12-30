@@ -9,7 +9,7 @@
  */
 
 /**
- * CSqlMap is the fascade class to the SqlMap database mapping
+ * CSqlMap is the gateway class to the SqlMap database mapping
  * solution.
  *
  * @author Wei Zhuo <weizhuo@gmail.com>
@@ -68,7 +68,7 @@ class CSqlMap extends CApplicationComponent
 
     /**
      * Returns the database connection used by the data mapper.
-     * Obtains default application database connection when $db is null.
+     * Sets and obtains default application database connection when $db is null.
      * @return CDbConnection current database connection
      */
     public function getDbConnection()
@@ -130,9 +130,9 @@ class CSqlMap extends CApplicationComponent
      * @param array parameters to be bound to the query SQL statement.
      * This is only used when the first parameter is a string (query id).
      * In other cases, please use {@link CSqlMapCriteria::params} to set parameters.
-     * @return mixed the query result. Null if no record is found.
+     * @return mixed the first mapped row of the query result, null if no record is found.
      */
-    public function find($id, $params=array())
+    public function query($id, $params=array())
     {
         $mapping=$this->getMappingById($id);
         $stm=$this->getDbConnection()->createCommand($mapping['sql']);
@@ -156,9 +156,10 @@ class CSqlMap extends CApplicationComponent
      * @param array parameters to be bound to the query SQL statement.
      * This is only used when the first parameter is a string (query id).
      * In other cases, please use {@link CSqlMapCriteria::params} to set parameters.
-     * @return array the query result.
+     * @return array all rows of the query result. Each array element 
+     * is an array representing a mapped object.
      */
-    public function findAll($id, $params=array())
+    public function queryAll($id, $params=array())
     {
     }
 
@@ -297,5 +298,60 @@ class CSqlMapConfig
     }
 }
 
-class CSqlMapException extends CException { }
+/**
+ * Base class for SqlMap exceptions.
+ *
+ * @author Wei Zhuo <weizhuo@gmail.com>
+ * @version $Id$
+ * @package system.db.sqlmap
+ * @since 1.1
+ */
+class CSqlMapException extends CException 
+{ 
+}
 
+/**
+ * CSqlMapCriteria represent a mapping query criteria, such as mapping id,
+ * parameters, limit and offset.
+ *
+ * @author Wei Zhuo <weizhuo@gmail.com>
+ * @version $Id$
+ * @package system.db.sqlmap
+ * @since 1.1
+ */
+class CSqlMapCriteria
+{
+    /**
+     * @var string the mapping key name. 
+     * See {@link CSqlMapConfig::resolveMappingKey} for details.
+     */
+    public $id='';
+
+    /**
+     * @var array list of query parameter values indexed by parameter placeholders.
+     * For example, <code>array(':name'=>'Dan', ':age'=>31)</code>.
+     */
+    public $params=array();
+
+    /**
+     * @var integer maximum number of records to be returned. If less than 0, 
+     * it means no limit.
+     */
+    public $limit=-1;
+
+    /**
+     * @var integer zero-based offset from where the records are to be 
+     * returned. If less than 0, it means starting from the beginning.
+     */
+    public $offset=-1;
+
+    /**
+     * Constructor.
+     * @param array criteria initial property values (indexed by property name).
+     */
+    public function __construct($data=array())
+    {
+        foreach($data as $name=>$value)
+            $this->$name=$value;
+    }
+}
