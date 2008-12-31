@@ -27,6 +27,7 @@
     - [Database Access Objects](database.dao)
     - [Active Record](database.ar)
     - [Relational Active Record](database.arr)
+    - [SqlMap Data Mapper](database.sqlmap)
 
 * Caching
     - [Overview](caching.overview)

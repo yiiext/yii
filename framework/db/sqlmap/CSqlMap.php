@@ -20,19 +20,24 @@
 class CSqlMap extends CApplicationComponent
 {
     /**
-     * @var CDbConnection the database connection
-     * for the data mapper. By default, this is the 'db'
-     * application component.
-     * @see getDbConnection
+     * @var string the ID of the {@link CDbConnection} application component. 
+     * If not set the default application component 'db' will be used.
      */
-    public $db;
+    public $connectionID;
 
     /**
-     * @var CSqlMapConfig sqlmap configuration containing
-     * file path information and mapping data.
+     * @var CDbConnection the database connection for the data mapper. 
+     * By default, this is the 'db' application component.
+     * @see getDbConnection
+     */
+    private $_db;
+
+    /**
+     * @var CSqlMapConfig sqlmap configuration containing file path information 
+     * and mapping data.
      * @see CSqlMapConfig
      */
-    public $config;
+    protected $_config;
 
     /**
      * Constructor.
@@ -44,8 +49,8 @@ class CSqlMap extends CApplicationComponent
      */
     public function __construct($dbConnection=null, $config=null)
     {
-        $this->db=$dbConnection;
-        $this->config=$config!==null?$config:new CSqlMapConfig();
+        $this->_db=$dbConnection;
+        $this->_config=$config!==null?$config:new CSqlMapConfig();
     }
 
     /**
@@ -54,7 +59,7 @@ class CSqlMap extends CApplicationComponent
      */
     public function setBasePath($path)
     {
-        $this->config->basePath=$path;
+        $this->_config->basePath=$path;
     }
 
     /**
@@ -63,57 +68,52 @@ class CSqlMap extends CApplicationComponent
      */
     public function getBasePath()
     {
-        return $this->config->basePath;
+        return $this->_config->basePath;
     }
 
     /**
      * Returns the database connection used by the data mapper.
-     * Sets and obtains default application database connection when $db is null.
+     * Uses the default application database connection when {@link connectionID} is empty.
      * @return CDbConnection current database connection
+     * @throws CException if {@link connectionID} does not point to a valid application component.
+     * @throws CDbException if default application database component is not a database connection.
      */
     public function getDbConnection()
     {
-        if($this->db!==null)
-            return $this->db;
-        else
+        if($this->_db!==null)
+            return $this->_db;
+        else if(($id=$this->connectionID)!==null)
         {
-            $this->db=Yii::app()->getDb();
-            if($this->db instanceof CDbConnection)
-            {
-                $this->db->setActive(true);
-                return $this->db;
-            }
+            if(($this->_db=Yii::app()->getComponent($id)) instanceof CDbConnection)
+                return $this->_db;
             else
-            {
-                throw new CDbException(Yii::t('yii',
-                    'SqlMap requires a "db" CDbConnection application component.'));
-            }
+                throw new CException(Yii::t('yii','CSqlMap.connectionID "{id}" is invalid. Please make sure it refers to the ID of a CDbConnection application component.', array('{id}'=>$id)));
         }
+        $this->_db=Yii::app()->getDb();
+        if(!($this->_db instanceof CDbConnection))
+            throw new CDbException(Yii::t('yii', 'CSqlMap requires a "db" CDbConnection application component.'));
     }
 
     /**
-     * @param string|CDbConnection when $config is a string the application component
-     * with key name given by $config is used. $db is set to $config when $config
-     * is an instance of CDbConnection.
-     * @see CDbConnection
+     * Initializes the application component.
+     * This method overrides the parent implementation by setting the base path
+     * to 'application.sqlmap' when {@link basePath} is not set.
      */
-    public function setDbConnection($config)
+    public function init()
     {
-        if(is_string($config))
-            $this->db=Yii::app()->getComponent($config);
-        else if($config instanceof CDbConnection)
-            $this->db=$config;
+        parent::init();
+        if($this->getBasePath()==='.')
+            $this->setBasePath(Yii::app()->getBasePath().DIRECTORY_SEPARATOR.'sqlmap');
     }
 
     /**
      * @param string mapping key, see {@link CSqlMapConfig::getMappingById} for details. 
      * @return array mapping data corresponding to the mapping key.
-     * @see CSqlMapConfig::getMappingById
      * @see CSqlMapConfig::resolveMappingKey
      */
     public function getMappingById($str)
     {
-        return $this->config->getMappingById($str);
+        return $this->_config->getMappingById($str);
     }
 
     /**
