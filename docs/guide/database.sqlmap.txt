@@ -50,3 +50,5 @@ If you have fairly simple business logic, Active Record may be more suitable and
 simpler. Fortunately, the SqlMap data mapper can map result sets to Active 
 Records. Thus, allowing complex queries to be handled by the data mapper and 
 simpler queries via Active Records.
+
+<div class="revision">$Id$</div>
