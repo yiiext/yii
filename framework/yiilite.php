@@ -6621,6 +6621,7 @@ class CDbCommand extends CComponent
 		try
 		{
 			if($this->_connection->enableProfiling)
+				Yii::beginProfile('system.db.CDbCommand.execute('.$this->getText().')','system.db.CDbCommand.execute');
 			if($this->_statement instanceof PDOStatement)
 			{
 				$this->_statement->execute();
@@ -6629,11 +6630,13 @@ class CDbCommand extends CComponent
 			else
 				$n=$this->getConnection()->getPdoInstance()->exec($this->getText());
 			if($this->_connection->enableProfiling)
+				Yii::endProfile('system.db.CDbCommand.execute('.$this->getText().')','system.db.CDbCommand.execute');
 			return $n;
 		}
 		catch(Exception $e)
 		{
 			if($this->_connection->enableProfiling)
+				Yii::endProfile('system.db.CDbCommand.execute('.$this->getText().')','system.db.CDbCommand.execute');
 			Yii::log('Error in executing SQL: '.$this->getText().$params,CLogger::LEVEL_ERROR,'system.db.CDbCommand');
 			throw new CDbException(Yii::t('yii','CDbCommand failed to execute the SQL statement: {error}',
 				array('{error}'=>$e->getMessage())));
@@ -6669,6 +6672,7 @@ class CDbCommand extends CComponent
 		try
 		{
 			if($this->_connection->enableProfiling)
+				Yii::beginProfile('system.db.CDbCommand.query('.$this->getText().')','system.db.CDbCommand.query');
 			if($this->_statement instanceof PDOStatement)
 				$this->_statement->execute();
 			else
@@ -6681,11 +6685,13 @@ class CDbCommand extends CComponent
 				$this->_statement->closeCursor();
 			}
 			if($this->_connection->enableProfiling)
+				Yii::endProfile('system.db.CDbCommand.query('.$this->getText().')','system.db.CDbCommand.query');
 			return $result;
 		}
 		catch(Exception $e)
 		{
 			if($this->_connection->enableProfiling)
+				Yii::endProfile('system.db.CDbCommand.query('.$this->getText().')','system.db.CDbCommand.query');
 			Yii::log('Error in querying SQL: '.$this->getText().$params,CLogger::LEVEL_ERROR,'system.db.CDbCommand');
 			throw new CDbException(Yii::t('yii','CDbCommand failed to execute the SQL statement: {error}',
 				array('{error}'=>$e->getMessage())));
