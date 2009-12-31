@@ -1,0 +1,101 @@
+Creating and Displaying Comments
+================================
+
+In this section, we implement the comment display and creation features.
+
+
+Displaying Comments
+-------------------
+
+Instead of displaying and creating comments individual pages, we use the post display page. Below the post content display, we display first a list of comments belonging to that post and then a comment creation form.
+
+In order to display comments on the post page, we modify the `actionShow()` method of `PostController` as follows,
+
+~~~
+[php]
+public function actionShow()
+{
+	$post=$this->loadPost();
+	$this->render('show',array(
+		'post'=>$post,
+		'comments'=>$post->comments,
+	));
+}
+~~~
+
+Note that the expression `$post->comments` is valid because we have declared a `comments` relation in the `Post` class. Evaluating this expression would trigger an implicit JOIN database query to bring back the comments belonging to the current post. This feature is known as [lazy relational query](http://www.yiiframework.com/doc/guide/database.arr).
+
+We also modify the `show` view by appending the comment display at the end of the post display, which we are not going to elaborate here.
+
+
+Creating Comments
+-----------------
+
+To handle comment creation, we first modify the `actionShow()` method of `PostController` as follows,
+
+~~~
+[php]
+public function actionShow()
+{
+	$post=$this->loadPost();
+	$comment=$this->newComment($post);
+	$this->render('show',array(
+		'post'=>$post,
+		'comments'=>$post->comments,
+		'newComment'=>$comment,
+	));
+}
+
+protected function newComment($post)
+{
+	$comment=new Comment;
+	if(isset($_POST['Comment']))
+	{
+		$comment->attributes=$_POST['Comment'];
+		$comment->postId=$post->id;
+		$comment->status=Comment::STATUS_PENDING;
+
+		if(isset($_POST['previewComment']))
+			$comment->validate();
+		else if(isset($_POST['submitComment']) && $comment->save())
+		{
+			Yii::app()->user->setFlash('commentSubmitted','Thank you...');
+			$this->refresh();
+		}
+	}
+	return $comment;
+}
+~~~
+
+In the above, we call the `newComment()` method before we render the `show` view. In the `newComment()` method, we generate a `Comment` instance and check if the comment form is submitted. The form may be submitted by clicking either the submit button or the preview button. If the former, we try to save the comment and display a flash message. The flash message is displayed only once, which means if we refresh the page again, it will disappear.
+
+We also modify the `show` view by appending the comment creation form:
+
+~~~
+[php]
+......
+<?php $this->renderPartial('/comment/_form',array(
+	'comment'=>$newComment,
+	'update'=>false,
+)); ?>
+~~~
+
+Here we embed the comment creation form by rendering the partial view `/wwwroot/blog/protected/views/comment/_form.php`. The variable `$newComment` is passed by the `actionShow` method. Its main purpose is to store the user comment input. The variable `update` is set as false, which indicates the comment form is being used to create a new comment.
+
+In order to support comment preview, we add a preview button to the comment creation form. When the preview button is clicked, the comment preview is displayed at the bottom. Below is the updated code of the comment form:
+
+~~~
+[php]
+...comment form with preview button...
+
+<?php if(isset($_POST['previewComment']) && !$comment->hasErrors()): ?>
+<h3>Preview</h3>
+<div class="comment">
+  <div class="author"><?php echo $comment->authorLink; ?> says:</div>
+  <div class="time"><?php echo date('F j, Y \a\t h:i a',$comment->createTime); ?></div>
+  <div class="content"><?php echo $comment->contentDisplay; ?></div>
+</div><!-- post preview -->
+<?php endif; ?>
+~~~
+
+<div class="revision">$Id$</div>
