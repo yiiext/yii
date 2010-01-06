@@ -8,7 +8,6 @@
  * @license http://www.yiiframework.com/license/
  */
 
-Yii::import('gii.components.GBaseController');
 
 /**
  * Gii is the web-based Code Generator for the Yii Framework.
@@ -19,7 +18,7 @@ Yii::import('gii.components.GBaseController');
  * @package system.gii
  * @since 1.1
  */
-class GDefaultController extends GBaseController {
+class DefaultController extends BaseController {
 
 	/**
 	 * Gii Home Page 
@@ -33,12 +32,12 @@ class GDefaultController extends GBaseController {
 	 */
 	public function actionLogin()
 	{
-		Yii::import('gii.models.GLoginForm');
-		$model=new GLoginForm;
+		Yii::import('gii.models.LoginForm');
+		$model=new LoginForm;
 		// collect user input data
-		if(isset($_POST['GLoginForm']))
+		if(isset($_POST['LoginForm']))
 		{
-			$model->attributes=$_POST['GLoginForm'];
+			$model->attributes=$_POST['LoginForm'];
 			// validate user input and redirect to the previous page if valid
 			if($model->validate())
 				$this->redirect(array('/gii'));

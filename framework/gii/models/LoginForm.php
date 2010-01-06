@@ -1,6 +1,6 @@
 <?php
 /**
- * This file contains the GLoginForm for the Gii module.
+ * This file contains the LoginForm for the Gii module.
  *
  * @author Sebastian Thierer <sebathi@gmail.com>
  * @link http://www.yiiframework.com/
@@ -11,21 +11,16 @@
 /**
  * Gii is the web-based Code Generator for the Yii Framework.
  * 
- * GLoginForm class.
- * GLoginForm is the data structure for keeping user login form data.
- * It is used by the 'login' action of 'GDefaultController'
+ * LoginForm class.
+ * LoginForm is the data structure for keeping user login form data.
+ * It is used by the 'login' action of 'DefaultController'
  * 
  * @author Sebastian Thierer <sebathi@gmail.com>
  * @version $Id$
  * @package system.gii
  * @since 1.1
  */
-/**
- * GLoginForm class.
- * LoginForm is the data structure for keeping
- * user login form data. It is used by the 'login' action of 'SiteController'.
- */
-class GLoginForm extends CFormModel
+class LoginForm extends CFormModel
 {
 	public $username;
 	public $password;
@@ -62,9 +57,7 @@ class GLoginForm extends CFormModel
 	{
 		if(!$this->hasErrors())  // we only want to authenticate when no input errors
 		{
-			Yii::import('gii.components.GUserIdentity');
-			
-			$identity=new GUserIdentity($this->username,$this->password);
+			$identity=new UserIdentity($this->username,$this->password);
 			$identity->authenticate();
 			$module = Yii::app()->getModule('gii');
 			switch($identity->errorCode)

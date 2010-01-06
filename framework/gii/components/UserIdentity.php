@@ -18,7 +18,7 @@
  * @package system.gii
  * @since 1.1
  */
-class GUserIdentity extends CUserIdentity
+class UserIdentity extends CUserIdentity
 {
 	/**
 	 * Authenticates a user.

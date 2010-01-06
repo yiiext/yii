@@ -17,7 +17,19 @@
  * @package system.gii
  * @since 1.1
  */
-class GBaseController extends CController {
+class BaseController extends CController {
 
+	private $breadcrumbs = array();
+	public function getBreadcrumbs(){
+		return $breadcrumbs;
+	}
+	
+	public function setBreadcrubms($value){
+		if (CPropertyValue::ensureArray($value)){
+			$this->breadcrumbs = $value;
+		}else{
+			throw new CException('Breadcrumbs must be an array');
+		}
+	}
 
 }

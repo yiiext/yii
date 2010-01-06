@@ -10,9 +10,9 @@
 
 /**
  * Gii is the web-based Code Generator for the Yii Framework.
- * 
+ *
  * To use this module, you may insert the following code in the application configuration:
- * 
+ *
  * 'modules'=>array(
  * 		'gii'=>array(
  * 			'class'=>'system.gii.GiiModule',
@@ -30,24 +30,18 @@
 class GiiModule extends CWebModule {
 
 
-	
+
 	/**
 	 * The username for the gii authentication scheme
 	 * @var string
 	 */
 	public $username;
-	
+
 	/**
 	 * The password for the gii authentication scheme
 	 * @var string
 	 */
 	public $password;
-	
-	/**
-	 * The gii module default controller 
-	 * @var string
-	 */
-	public $defaultController = 'gDefault';
 
 	/**
 	 * (non-PHPdoc)
@@ -56,16 +50,22 @@ class GiiModule extends CWebModule {
 	public function preinit()
 	{
 		$this->setComponents(
-			array(
+		array(
 				'user'=>array(
 					'class'=>'CWebUser',
 					'stateKeyPrefix'=>md5('Yii.'.get_class($this).'.'.Yii::app()->getId()),
 					'loginUrl'=>array('/gii/default/login'),
-				)
-			)
+		)
+		)
+		);
+		$this->setImport(
+		array(
+				'gii.components.*',
+				'gii.models.*',
+		)
 		);
 	}
-	
+
 	public function getUser(){
 		return $this->getComponent('user', true);
 	}
@@ -88,18 +88,36 @@ class GiiModule extends CWebModule {
 		if(parent::beforeControllerAction($controller, $action))
 		{
 			// Check if the user has been logged in. If not, go to the module Login page
-			if ($this->user->getIsGuest() && 
-				(strcmp($controller->id, 'gDefault')!=0 || 
-				(strcmp($controller->id, 'gDefault')==0 && strcmp($action->id, 'login')))) {
-				Yii::app()->request->redirect(Yii::app()->createUrl('/gii/gDefault/login'));
+			if ($this->user->getIsGuest() &&
+			(strcmp($controller->id, 'default')!=0 ||
+			(strcmp($controller->id, 'default')==0 && strcmp($action->id, 'login')))) {
+				Yii::app()->request->redirect(Yii::app()->createUrl('/gii/default/login'));
 			}
 			// if this is not the login
 			$controller->layout = 'gii.views.layouts.main';
-			
+				
 			return true;
 		}
 		else
-			return false;
+		return false;
 	}
+
+	/**
+	 * The assets base Url
+	 * @var string
+	 */
+	private $assetsBaseUrl = null;
 	
+	/**
+	 * This function resolves the assets base url for Gii
+	 * @return string
+	 */
+	public function getAssetsBaseUrl(){
+		if ($this->assetsBaseUrl===null){
+			$basePath=Yii::getPathOfAlias('gii.assets');
+			$this->assetsBaseUrl = Yii::app()->getAssetManager()->publish($basePath);
+		}
+		return $this->assetsBaseUrl;
+	}
+
 }
