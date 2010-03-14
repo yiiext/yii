@@ -2,6 +2,10 @@
                    Yii Framework Change Log
                    ========================
 
+Version 1.0.13 to be released
+-----------------------------
+
+
 Version 1.0.12 March 14, 2010
 -----------------------------
 - Bug #731: When using CWebService to generate WSDL, it may cause the error about Premature end of data in tag definitions in SoapClient (Qiang)
