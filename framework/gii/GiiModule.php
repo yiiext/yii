@@ -18,6 +18,13 @@
  * 			'class'=>'system.gii.GiiModule',
  * 			'username'=>'dev',
  * 			'password'=>'yiidev',
+ * 			'generators'=>array(
+ *          	'generatorName'=>array(
+ *              	'class'=>'application.extensions.externalgiigenerator.ExternalGiiGenerator',
+ *                  'optionalAttribute1'=>'..',
+ *                  'optionalAttribute2'=>'..',
+ *				)
+ *			),
  * 		),
  * ),
  *
@@ -42,27 +49,45 @@ class GiiModule extends CWebModule {
 	 * @var string
 	 */
 	public $password;
+	
+	/**
+	 * List of user created generators 
+	 * @var unknown_type
+	 */
+	public $generators = array();
 
+	private $baseGenerators = array(
+		'Controller'=>array(
+			'class'=>'gii.generators.ControllerCodeGenerator',
+		),
+		'Model'=>array(
+			'class'=>'gii.generators.ControllerCodeGenerator',
+		),
+		'Crud'=>array(
+			'class'=>'gii.generators.ControllerCodeGenerator',
+		),
+	);
 	/**
 	 * (non-PHPdoc)
 	 * @see framework/base/CModule#init()
 	 */
 	public function preinit()
 	{
+		parent::preInit();
 		$this->setComponents(
-		array(
+			array(
 				'user'=>array(
 					'class'=>'CWebUser',
 					'stateKeyPrefix'=>md5('Yii.'.get_class($this).'.'.Yii::app()->getId()),
 					'loginUrl'=>array('/gii/default/login'),
-		)
-		)
+				)
+			)
 		);
 		$this->setImport(
-		array(
+			array(
 				'gii.components.*',
 				'gii.models.*',
-		)
+			)
 		);
 	}
 
@@ -95,11 +120,27 @@ class GiiModule extends CWebModule {
 			}
 			// if this is not the login
 			$controller->layout = 'gii.views.layouts.main';
+			$this->generators = array_merge(
+				array(
+					'Controller'=>array(
+						'class'=>'gii.generators.ControllerCodeGenerator',
+						'title'=>'Controller generator',
+					),
+					'CRUD'=>array(
+						'class'=>'gii.generators.CrudCodeGenerator'
+					),
+					'Model'=>array(
+						'class'=>'gii.generators.ModelCodeGenerator'
+					)
+				),
+				$this->generators
+			); 
+			
 				
 			return true;
 		}
 		else
-		return false;
+			return false;
 	}
 
 	/**

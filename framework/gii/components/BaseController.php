@@ -20,10 +20,19 @@
 class BaseController extends CController {
 
 	private $breadcrumbs = array();
+	
+	/**
+	 * Gets actual breadcrumbs
+	 * @return unknown_type
+	 */
 	public function getBreadcrumbs(){
 		return $breadcrumbs;
 	}
 	
+	/**
+	 * Sets actual breadcrumbs
+	 * @param array $value
+	 */
 	public function setBreadcrubms($value){
 		if (CPropertyValue::ensureArray($value)){
 			$this->breadcrumbs = $value;

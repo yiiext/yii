@@ -24,40 +24,25 @@ class GeneratorsList extends CWidget
 	public $items=array();
 
 	public function run(){
-		
-		$defaultGenerators = array(
-			'Controller'=>$this->controller->createUrl('/gii/generators/controller'),
-			'Models'=>$this->controller->createUrl('/gii/generators/models'),
-			'CRUD'=>$this->controller->createUrl('/gii/generators/crud'),
-		);
-		foreach($defaultGenerators as $title=>$url){
-			$items[] = array('label'=>$title, 'url'=>$url, 'active'=>false);
+		$generatorsList = array();
+		$generators = $this->getController()->getModule()->generators;
+		$items = array();
+		foreach($generators as $key=>$generator){
+			$name = (is_array($generator) && isset($generator['title']))?$generator['title']:$key;
+			$url = $this->getController()->createUrl('/gii/default/generate', array('g'=>$key));
+			$items[] = array('label'=>$name, 'url'=>$url, 'active'=>$this->isActive($key));
 		}
 		
 		$this->render('leftMenu', array('items'=>$items));
 	}
 
-	protected function isActive($pattern,$controllerID,$actionID)
+	/**
+	 * Checks if the actual key is the same as the selected controller
+	 * @param string $key
+	 * @return boolean
+	 */
+	protected function isActive($key)
 	{
-		if(!is_array($pattern) || !isset($pattern[0]))
-			return false;
-
-		$pattern[0]=trim($pattern[0],'/');
-		if(strpos($pattern[0],'/')!==false)
-			$matched=$pattern[0]===$controllerID.'/'.$actionID;
-		else
-			$matched=$pattern[0]===$controllerID;
-
-		if($matched && count($pattern)>1)
-		{
-			foreach(array_splice($pattern,1) as $name=>$value)
-			{
-				if(!isset($_GET[$name]) || $_GET[$name]!=$value)
-					return false;
-			}
-			return true;
-		}
-		else
-			return $matched;
+		return isset($_GET['g']) && strcmp($_GET['g'],$key)==0;
 	}
 }

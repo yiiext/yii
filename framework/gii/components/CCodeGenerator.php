@@ -1,6 +1,85 @@
 <?php
-class GeneratorBaseController extends BaseController{
+abstract class CCodeGenerator extends CComponent {
+	
+	/**
+	 * The generator title for every page
+	 * @var string
+	 */
+	public $title;
+	
+	public function getTitle(){
+		if (isset($this->title)){
+			return $this->title;
+		}
+		return null;
+	}
 
+	abstract public function getFilesToGenerate();
+
+	abstract public function generate($files, $log);
+	
+	/**
+	 * Returns the help information for this generator
+	 * @return string
+	 */
+	abstract public function getHelp();
+
+	public function getArguments(){
+		$form = new ParameterForm();
+		if (isset($_POST['ParameterForm'])){
+			$form->attributes = $_POST['ParameterForm'];
+			return $form->getArguments();
+		}else{
+			return array();
+		}
+	}
+	
+	const FILE_NOT_EXISTS = 1;
+	const FILE_EXISTS_UNCHANGED = 2;
+	const FILE_EXISTS_OVERWRITE= 2;
+	/**
+	 * Gets a list of 
+	 * @param array$fileList
+	 * @return array
+	 */
+	public function checkCopyFiles($fileList){
+		$overwriteAll=false;
+		$files = array();
+		foreach($fileList as $name=>$file)
+		{
+			$source=strtr($file['source'],'/\\',DIRECTORY_SEPARATOR);
+			$target=strtr($file['target'],'/\\',DIRECTORY_SEPARATOR);
+			$callback=isset($file['callback']) ? $file['callback'] : null;
+			$params=isset($file['params']) ? $file['params'] : null;
+
+			if(is_dir($source))
+			{
+				$files[$target]=array($source, self::FILE_NOT_EXISTS);
+				continue;
+			}
+
+			if(is_file($target))
+			{
+				if($callback!==null)
+					$content=call_user_func($callback,$source,$params);
+				else
+					$content=file_get_contents($source);
+
+				if($content===file_get_contents($target)){
+					$files[$target]=array($source, self::FILE_EXISTS_UNCHANGED, self::FILE_EXISTS_UNCHANGED);
+					continue;
+				}
+				
+				$files[$target]=array($source, self::FILE_EXISTS_UNCHANGED, self::FILE_EXISTS_OVERWRITE);
+				continue;
+				
+			}else{
+				$files[$target]=array($source, self::FILE_NOT_EXISTS);
+				
+			}
+		}
+		return $files;
+	}
 	/**
 	 * Copies a list of files from one place to another.
 	 * @param array the list of files to be copied (name=>spec).
@@ -20,7 +99,7 @@ class GeneratorBaseController extends BaseController{
 	 * </ul>
 	 * @see buildFileList
 	 */
-	public function copyFiles($fileList, $overwriteAll = false)
+	public function copyFiles($fileList, CLogger $log)
 	{
 		foreach($fileList as $name=>$file)
 		{
@@ -32,22 +111,26 @@ class GeneratorBaseController extends BaseController{
 			if(is_dir($source))
 			{
 				$this->ensureDirectory($target);
+				$log->log('     mkdir ' . $target, CLogger::LEVEL_INFO); 
 				continue;
+			}else{
+				$this->ensureDirectory(dirname($target));
 			}
 
 			if($callback!==null)
 				$content=call_user_func($callback,$source,$params);
 			else
 				$content=file_get_contents($source);
-				
-			if(!is_file($target)){
-				$this->ensureDirectory(dirname($target));
-			}elseif (!$overwriteAll){
-				continue;
+			
+			if (is_file($target)){
+				$log->log(' overwrite ' . $target, CLogger::LEVEL_INFO);
+			}else{
+				$log->log('generating ' . $target, CLogger::LEVEL_INFO);
 			}
 			file_put_contents($target,$content);
 		}
 	}
+
 	/**
 	 * Builds the file list of a directory.
 	 * This method traverses through the specified directory and builds
@@ -62,7 +145,7 @@ class GeneratorBaseController extends BaseController{
 	{
 		$list=array();
 		$handle=opendir($sourceDir);
-		while($file=readdir($handle))
+		while(($file=readdir($handle))!==false)
 		{
 			if($file==='.' || $file==='..' || $file==='.svn' ||$file==='.yii')
 				continue;
@@ -86,6 +169,7 @@ class GeneratorBaseController extends BaseController{
 		if(!is_dir($directory))
 		{
 			$this->ensureDirectory(dirname($directory));
+			echo "      mkdir ".strtr($directory,'\\','/')."\n";
 			mkdir($directory);
 		}
 	}
@@ -136,5 +220,5 @@ class GeneratorBaseController extends BaseController{
 		}
 		return $name.'s';
 	}
-
+	
 }
