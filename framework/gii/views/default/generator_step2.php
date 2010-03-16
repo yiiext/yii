@@ -9,7 +9,19 @@
 	<?php echo $this->module->user->getFlash('success'); ?>
 </div>
 <?php } ?>
+<?php echo CHtml::beginForm();?>
+<div class="form">
+	<div class="row">
+		<?php echo CHtml::activeLabel($form, 'parameters'); ?>
+		<?php echo CHtml::activeTextField($form, 'parameters'); ?>
+	</div>
+	<div class="button">
+		<?php echo CHtml::submitButton("Generate"); ?>
+	</div>
+</div>
+<?php echo CHtml::endForm();?>
 
+<h3>The following files will be generated:</h3>
 <?php echo CHtml::beginForm();?>
 <?php echo CHtml::activeHiddenField($form, 'parameters'); ?>
 <div class="form">
