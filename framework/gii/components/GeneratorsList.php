@@ -1,48 +1,35 @@
 <?php
-/**
- * MainMenu is a widget displaying main menu items.
- *
- * The menu items are displayed as an HTML list. One of the items
- * may be set as active, which could add an "active" CSS class to the rendered item.
- *
- * To use this widget, specify the "items" property with an array of
- * the menu items to be displayed. Each item should be an array with
- * the following elements:
- * - visible: boolean, whether this item is visible;
- * - label: string, label of this menu item. Make sure you HTML-encode it if needed;
- * - url: string|array, the URL that this item leads to. Use a string to
- *   represent a static URL, while an array for constructing a dynamic one.
- * - pattern: array, optional. This is used to determine if the item is active.
- *   The first element refers to the route of the request, while the rest
- *   name-value pairs representing the GET parameters to be matched with.
- *   When the route does not contain the action part, it is treated
- *   as a controller ID and will match all actions of the controller.
- *   If pattern is not given, the url array will be used instead.
- */
-class GeneratorsList extends CWidget
+class GeneratorsList extends CMenu
 {
 	public $items=array();
-
-	public function run(){
+	
+	/**
+	 * Normalizes the {@link items} property so that the 'active' state is properly identified for every menu item.
+	 * @param array the items to be normalized.
+	 * @param string the route of the current request.
+	 * @param boolean whether there is an active child menu item.
+	 * @return array the normalized menu items
+	 */
+	protected function normalizeItems($items,$route,&$active)
+	{
 		$generatorsList = array();
 		$generators = $this->getController()->getModule()->generators;
-		$items = array();
+		$newItems = array();
 		foreach($generators as $key=>$generator){
 			$name = (is_array($generator) && isset($generator['title']))?$generator['title']:$key;
 			$url = $this->getController()->createUrl('/gii/default/generate', array('g'=>$key));
-			$items[] = array('label'=>$name, 'url'=>$url, 'active'=>$this->isActive($key));
+			$newItems[] = array('label'=>$name, 'url'=>$url, 'active'=>$this->isActive($key));
 		}
-		
-		$this->render('leftMenu', array('items'=>$items));
+		return parent::normalizeItems($newItems, $route, $active);
 	}
-
+	
 	/**
-	 * Checks if the actual key is the same as the selected controller
-	 * @param string $key
-	 * @return boolean
+	 * Checks if the $generator is active
+	 * @param string $generator
+	 * @return boolean whether the generator is active
 	 */
-	protected function isActive($key)
+	protected function isActive($generator)
 	{
-		return isset($_GET['g']) && strcmp($_GET['g'],$key)==0;
+		return isset($_GET['g']) && strcmp($_GET['g'],$generator)==0;
 	}
 }

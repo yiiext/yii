@@ -1,6 +1,6 @@
 <?php
 /**
- * This file contains the GBaseController.
+ * This file contains the BaseController.
  *
  * @author Sebastian Thierer <sebathi@gmail.com>
  * @link http://www.yiiframework.com/
@@ -20,20 +20,21 @@
 class BaseController extends CController {
 
 	private $breadcrumbs = array();
+	public $layout = 'gii.views.layouts.main';
 	
 	/**
 	 * Gets actual breadcrumbs
 	 * @return unknown_type
 	 */
 	public function getBreadcrumbs(){
-		return $breadcrumbs;
+		return $this->breadcrumbs;
 	}
 	
 	/**
 	 * Sets actual breadcrumbs
 	 * @param array $value
 	 */
-	public function setBreadcrubms($value){
+	public function setBreadcrumbs($value){
 		if (CPropertyValue::ensureArray($value)){
 			$this->breadcrumbs = $value;
 		}else{

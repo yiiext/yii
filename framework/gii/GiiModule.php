@@ -112,14 +112,14 @@ class GiiModule extends CWebModule {
 	{
 		if(parent::beforeControllerAction($controller, $action))
 		{
-			// Check if the user has been logged in. If not, go to the module Login page
-			if ($this->user->getIsGuest() &&
-			(strcmp($controller->id, 'default')!=0 ||
-			(strcmp($controller->id, 'default')==0 && strcmp($action->id, 'login')))) {
-				Yii::app()->request->redirect(Yii::app()->createUrl('/gii/default/login'));
+			// Check if the user has been logged in. If not, go to the login page
+			if ($this->user->getIsGuest()) {
+				if (($controller->id!=='auth') && ($action->id!=='login'))
+					$controller->redirect(array('/gii/auth/login'));
+				return true;
 			}
+			
 			// if this is not the login
-			$controller->layout = 'gii.views.layouts.main';
 			$this->generators = array_merge(
 				array(
 					'Controller'=>array(
@@ -136,7 +136,6 @@ class GiiModule extends CWebModule {
 				$this->generators
 			); 
 			
-				
 			return true;
 		}
 		else

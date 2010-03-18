@@ -106,10 +106,14 @@ body
 	text-decoration:none;
 }
 
-#leftmenu ul li a:hover, #mainmenu ul li a.active
+#leftmenu ul li a:hover
 {
 	color: #000000;
 	text-decoration:none;
+}
+#leftmenu ul li.active a
+{
+	text-decoration: underline;
 }
 div.error, div.notice, .success
 {
